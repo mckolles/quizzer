@@ -1,0 +1,50 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Logs
+logs
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Runtime data
+pids
+*.swo
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*.local
+
+# Next.js
+.next/
+out/
+.next-turbo/
+
+# NestJS
+dist/
+coverage/
+
+# Docker
+docker-compose.override.yml
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+prisma/migrations/
+
+# VS Code
+.vscode/
+
+# Misc
+*.local
+*.tgz
