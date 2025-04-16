@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  quiz:
+    build:
+      context: ./services/quiz
+      dockerfile: ../../docker/Dockerfile.quiz
+    container_name: docker-quiz
+    ports:
+      - 4000:4000
+    volumes:
+      - ./services/quiz/src:/app/src
+      - ./services/quiz/prisma:/app/prisma
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quizzer
+    depends_on:
+      - db
+    command: npm run start:dev
+
+  db:
+    image: postgres:13
+    container_name: quiz-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: quizzer
+    ports:
+      - 5432:5432
+    volumes:
+      - quiz-db-data:/var/lib/postgresql/data
+
+  prisma:
+    image: node:20
+    container_name: prisma
+    working_dir: /app
+    volumes:
+      - ./services/quiz:/app
+    command: npx prisma migrate dev --name init --schema=prisma/schema.prisma
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quizzer
+    depends_on:
+      - db
+
+volumes:
+  quiz-db-data:
