@@ -13,7 +13,7 @@ services:
       - ./services/quiz/prisma:/app/prisma
       - /app/node_modules
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quizzer
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quiz
     depends_on:
       - db
     command: npm run start:dev
@@ -24,7 +24,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: quizzer
+      POSTGRES_DB: quiz
     ports:
       - 5432:5432
     volumes:
@@ -38,7 +38,7 @@ services:
       - ./services/quiz:/app
     command: npx prisma migrate dev --name init --schema=prisma/schema.prisma
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quizzer
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quiz
     depends_on:
       - db
 
