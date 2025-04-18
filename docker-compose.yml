@@ -1,24 +1,69 @@
 version: '3.8'
 
 services:
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: ../../docker/Dockerfile.gateway
+    container_name: docker-gateway
+    ports:
+      - 4000:4000
+    volumes:
+      - ./services/gateway/src:/app/src
+      - ./services/gateway/prisma:/app/prisma
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@gateway-db:5432/gateway
+    depends_on:
+      - gateway-db
+    command: npm run start:dev
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: ../../docker/Dockerfile.auth
+    container_name: docker-auth
+    ports:
+      - 4001:4001
+    volumes:
+      - ./services/auth/src:/app/src
+      - ./services/auth/prisma:/app/prisma
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@auth-db:5432/gateway
+    depends_on:
+      - auth-db
+    command: npm run start:dev
+
   quiz:
     build:
       context: ./services/quiz
       dockerfile: ../../docker/Dockerfile.quiz
     container_name: docker-quiz
     ports:
-      - 4000:4000
+      - 4002:4002
     volumes:
       - ./services/quiz/src:/app/src
       - ./services/quiz/prisma:/app/prisma
       - /app/node_modules
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quiz
+      - DATABASE_URL=postgresql://postgres:postgres@quiz-db:5432/quiz
     depends_on:
-      - db
+      - quiz-db
     command: npm run start:dev
 
-  db:
+  gateway-db:
+    image: postgres:13
+    container_name: gateway-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gateway
+    ports:
+      - 5433:5432
+    volumes:
+      - gateway-db-data:/var/lib/postgresql/data
+
+  quiz-db:
     image: postgres:13
     container_name: quiz-db
     environment:
@@ -26,21 +71,57 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: quiz
     ports:
-      - 5432:5432
+      - 5434:5432
     volumes:
       - quiz-db-data:/var/lib/postgresql/data
+  auth-db:
+    image: postgres:13
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth
+    ports:
+      - 5434:5432
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
 
-  prisma:
+  prisma-gateway:
     image: node:20
-    container_name: prisma
+    container_name: prisma-gateway
+    working_dir: /app
+    volumes:
+      - ./services/gateway:/app
+    command: npx prisma migrate dev --name init --schema=prisma/schema.prisma
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@gateway-db:5432/gateway
+    depends_on:
+      - gateway-db
+
+  prisma-quiz:
+    image: node:20
+    container_name: prisma-quiz
     working_dir: /app
     volumes:
       - ./services/quiz:/app
     command: npx prisma migrate dev --name init --schema=prisma/schema.prisma
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quiz
+      - DATABASE_URL=postgresql://postgres:postgres@quiz-db:5432/quiz
     depends_on:
-      - db
+      - quiz-db
+  prisma-auth:
+    image: node:20
+    container_name: prisma-auth
+    working_dir: /app
+    volumes:
+      - ./services/auth:/app
+    command: npx prisma migrate dev --name init --schema=prisma/schema.prisma
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@auth-db:5432/auth
+    depends_on:
+      - auth-db
 
 volumes:
   quiz-db-data:
+  gateway-db-data:
+  auth-db-data:
